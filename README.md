@@ -1,20 +1,38 @@
-# Climate Data Analyzer
+# Temperature Data Explorer
 
-Diese Version enthält bereits einen vorgebauten `stations.json`-Index auf Basis der offiziellen NOAA-GHCN-Metadaten für `TMIN` und `TMAX`.
-Dadurch entfällt der langsame Erstaufbau des Stations-Caches. Es wird weiterhin keine Datenbank verwendet.
+Dieses Projekt stellt historische Temperaturdaten über eine FastAPI-Webanwendung bereit. Die Anwendung ist containerisiert und kann lokal über Docker Compose oder automatisiert über GitHub Actions gebaut und veröffentlicht werden.
 
-## Starten
+## Lokaler Start ohne Container
 
 ```powershell
-cd generated_climate_project
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
-Dann im Browser öffnen:
+Danach im Browser öffnen:
 
 - http://127.0.0.1:8000
 - http://127.0.0.1:8000/docs
+
+## Lokaler Start mit Docker Compose
+
+```powershell
+docker compose up --build
+```
+
+## Installation über Container Registry
+
+Sobald die GitHub Actions Pipeline erfolgreich gelaufen ist, steht das Container-Image in der GitHub Container Registry bereit.
+
+```powershell
+docker compose up -d
+```
+
+Die Installationskonfiguration dafür liegt in `compose.yaml`.
+
+## CI/CD
+
+Die Pipeline liegt unter `.github/workflows/ci-cd.yml` und führt bei jedem Push oder Pull Request automatisiert Tests aus. Bei einem Push auf `main` wird zusätzlich ein Container-Image gebaut und nach `ghcr.io/lilli30101/temperature_data_explorer` veröffentlicht.
 
 ## Architektur
 
@@ -22,11 +40,6 @@ Dann im Browser öffnen:
 - `data/by_station/<id>.csv`: lokaler Cache für on-demand geladene Stationsdaten
 - `data/summaries/*.json`: lokaler Cache für Auswertungen
 - keine Datenbank
-
-## Warum diese Lösung schneller ist
-
-Die Stationssuche arbeitet direkt auf dem lokal mitgelieferten `stations.json`-Index.
-Nur bei der eigentlichen Auswertung einer ausgewählten Station werden Tagesdaten von NOAA geladen und lokal gespeichert.
 
 ## Datenquelle
 

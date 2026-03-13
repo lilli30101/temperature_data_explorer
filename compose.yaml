@@ -1,8 +1,5 @@
 services:
   temperature-data-explorer:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: ghcr.io/lilli30101/temperature_data_explorer:latest
     ports:
       - "8000:8000"
