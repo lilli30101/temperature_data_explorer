@@ -151,6 +151,9 @@ Die Tests können lokal mit folgendem Befehl ausgeführt werden:
 pytest
 ```
 
-## Autorin
+## Autoren
 
+Malte Ade
 Lilli Franz
+Madeleine Notheis
+Katharina Raible
