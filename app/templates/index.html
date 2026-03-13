@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temperature Data Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="/static/js/app.js?v=legendfix2" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    
+
+    <main class="main-content">
+      <section class="hero glass-panel" id="heroSection">
+        <div class="hero-backdrop"></div>
+        <div class="hero-overlay"></div>
+
+        <div class="hero-left">
+          <div class="hero-copy">
+            <p class="eyebrow">NOAA · GHCN Daily</p>
+            <h1>Temperature Data Explorer</h1>
+            <p class="subtitle">Durchsuche und analysiere weltweite Wetterdaten mit Leichtigkeit.</p>
+          </div>
+
+          <section class="search-card glass-panel" id="searchCard">
+            <h2>Suchparameter</h2>
+
+            <label>
+              <span>Breitengrad</span>
+              <input id="latitude" type="text" inputmode="decimal" value="48,466" placeholder="48,466" autocomplete="off" spellcheck="false" />
+            </label>
+
+            <label>
+              <span>Längengrad</span>
+              <input id="longitude" type="text" inputmode="decimal" value="8,411" placeholder="8,411" autocomplete="off" spellcheck="false" />
+            </label>
+
+            <div class="field-group">
+              <div class="field-head">
+                <span>Suchradius</span>
+                <strong><span id="radiusValue">50</span> km</strong>
+              </div>
+              <input id="radius" type="range" min="1" max="100" value="50" />
+            </div>
+
+            <label>
+              <span>Max. Stationen</span>
+              <input id="limit" type="number" min="1" max="25" value="5" />
+            </label>
+
+            <div class="year-grid">
+              <label>
+                <span>Startjahr</span>
+                <input id="startYear" type="number" value="1949" />
+              </label>
+              <label>
+                <span>Endjahr</span>
+                <input id="endYear" type="number" value="2023" />
+              </label>
+            </div>
+
+            <button id="searchBtn" class="primary-btn">Stationen suchen</button>
+            <p id="status" class="status-text" aria-live="polite">Bereit.</p>
+          </section>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-copy">
+            Gib geografische Koordinaten ein und starte<br />
+            die Suche nach Wetterstationen.
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace hidden" id="workspaceSection">
+        <div class="workspace-left glass-panel">
+          <div id="searchDock"></div>
+          <section class="filter-card glass-panel" id="filterCard">
+            <div class="filter-card-head">
+              <p class="section-label">Filter</p>
+              <h3>Diagramm konfigurieren</h3>
+            </div>
+            <p class="filter-hint">Standardmäßig werden nur die Jahreswerte für TMIN und TMAX angezeigt. Du kannst die Anzeige später beliebig auf einzelne Jahreszeiten und Kennzahlen einschränken.</p>
+            <div class="filter-groups">
+              <div class="metric-filter">
+                <div class="metric-title">TMIN</div>
+                <label class="check-pill"><input type="checkbox" data-series-key="tmin" checked><span>Alle</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="spring_tmin"><span>Frühling</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="summer_tmin"><span>Sommer</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="autumn_tmin"><span>Herbst</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="winter_tmin"><span>Winter</span></label>
+              </div>
+              <div class="metric-filter">
+                <div class="metric-title">TMAX</div>
+                <label class="check-pill"><input type="checkbox" data-series-key="tmax" checked><span>Alle</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="spring_tmax"><span>Frühling</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="summer_tmax"><span>Sommer</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="autumn_tmax"><span>Herbst</span></label>
+                <label class="check-pill"><input type="checkbox" data-series-key="winter_tmax"><span>Winter</span></label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="workspace-center glass-panel">
+          <div class="section-head compact-head">
+            <div>
+              <p class="section-label">Karte</p>
+              <h2>Suchbereich & Stationen</h2>
+            </div>
+          </div>
+          <div class="map-stage">
+            <div id="map" class="map-shell" aria-label="Stationskarte"></div>
+            <div class="map-summary" id="mapSummary">
+              <strong>0 Stationen gefunden.</strong>
+              <span>Bitte wählen Sie eine Station aus.</span>
+            </div>
+          </div>
+
+          <section class="analysis-panel analysis-inline glass-panel">
+            <div class="analysis-topbar">
+              <div>
+                <p class="section-label">Analyse</p>
+                <h2>Auswertung der Station</h2>
+              </div>
+              <div class="tab-switcher" role="tablist" aria-label="Analyseansicht">
+                <button id="chartTabBtn" class="tab-btn active" type="button" data-tab="chart">Diagramm</button>
+                <button id="tableTabBtn" class="tab-btn" type="button" data-tab="table">Tabelle</button>
+              </div>
+            </div>
+
+            <p id="rule" class="rule-text">Wähle rechts eine Station aus oder klicke einen Marker auf der Karte an.</p>
+
+            <div id="chartPanel" class="tab-panel active">
+              <div class="chart-shell workspace-chart-shell">
+                <canvas id="chart"></canvas>
+              </div>
+            </div>
+
+            <div id="tablePanel" class="tab-panel">
+              <div id="tableWrapper"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="workspace-right glass-panel">
+          <div class="section-head compact-head">
+            <div>
+              <p class="section-label">Stationen</p>
+              <h2>Gefundene Stationen</h2>
+            </div>
+          </div>
+          <div id="stationList" class="station-list station-list-compact muted">Noch keine Suche ausgeführt.</div>
+        </section>
+
+      </section>
+    </main>
+  </div>
+</body>
+</html>

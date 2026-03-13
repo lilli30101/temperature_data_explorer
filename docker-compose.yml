@@ -1,0 +1,13 @@
+services:
+  climate-data-analyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-local}/climate-data-analyzer:latest
+    ports:
+      - "8000:8000"
+    environment:
+      CLIMATE_REQUEST_TIMEOUT_SECONDS: "20"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
